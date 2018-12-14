@@ -51,7 +51,6 @@ public class ChultApplication {
         vars.put("terrain", Terrain.JUNGLE_NO_UNDEAD.name());
         log.debug("vars={}", vars);
         log.info("Results {}", tmplt.processNamed("encounter_roll", vars));
-        log.info("All Encounter Test {}", tmplt.processRaw(dir.getDoc().getAllEncounterTest(), vars));
 
         // there is a full file run over in the Tests
     }

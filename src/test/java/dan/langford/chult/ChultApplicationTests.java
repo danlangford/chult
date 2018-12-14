@@ -44,6 +44,7 @@ class ChultApplicationTests {
 		assertThat(entireFileResults).doesNotContain("404");
 
 	    log.info("\n\n**********\n\n{}\n\n**********\n\n", entireFileResults);
+	    log.info("\n\n**********\n\n{}\n\n**********\n\n", tmplt.processRaw(dir.getDoc().getAllEncounterTest(), vars));
 	    log.info("\n\n**********\n\n{}\n\n**********\n\n", tmplt.processRaw("Welcome to the <var terrain>! Encounter roll … <table encounter_<var terrain>>", vars));
 
 	}
