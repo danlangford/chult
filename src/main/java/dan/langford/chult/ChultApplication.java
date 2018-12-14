@@ -4,16 +4,14 @@ import dagger.Component;
 import dan.langford.chult.model.Method;
 import dan.langford.chult.model.Pace;
 import dan.langford.chult.model.Terrain;
-import dan.langford.chult.service.DiceService;
-import dan.langford.chult.service.DirectoryService;
-import dan.langford.chult.service.TemplateService;
+import dan.langford.chult.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.IOUtils;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,12 +35,14 @@ public class ChultApplication {
     private final DiceService dice;
     private final TemplateService tmplt;
     private final DirectoryService dir;
+    private final DmInputService dm;
 
     @Inject
-    public ChultApplication(DiceService dice, TemplateService tmplt, DirectoryService dir) {
+    public ChultApplication(DiceService dice, TemplateService tmplt, DirectoryService dir, DmInputService dm) {
         this.dice = dice;
         this.tmplt = tmplt;
         this.dir = dir;
+        this.dm = dm;
     }
 
     private void run() throws IOException {
@@ -51,6 +51,13 @@ public class ChultApplication {
         vars.put("terrain", Terrain.JUNGLE_NO_UNDEAD.name());
         log.debug("vars={}", vars);
         log.info("Results {}", tmplt.processNamed("encounter_roll", vars));
+
+
+        while(true) {
+            String decision = dm.promptFor(new ArrayList<>(dir.getTableNames()));
+            log.info("you selected {}", decision);
+            log.info("Roll on Table {} is {}", decision, tmplt.rollTable(decision));
+        }
 
         // there is a full file run over in the Tests
     }

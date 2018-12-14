@@ -9,6 +9,7 @@ import org.yaml.snakeyaml.constructor.Constructor;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.InputStream;
+import java.util.Set;
 
 @Slf4j
 @Singleton
@@ -29,6 +30,9 @@ public class DirectoryService {
         return doc;
     }
 
+    public Set<String> getTableNames() {
+        return doc.getTables().keySet();
+    }
     public Table getTable(String name) {
         return doc.getTables().get(name);
     }

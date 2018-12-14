@@ -18,16 +18,20 @@ import static java.util.Arrays.asList;
 public class TemplateService {
 
     private final DirectoryService dir;
-    private final TableService tableService;
-    private final DiceService diceService;
+    private final TableService tables;
+    private final DiceService dice;
 
     private final Pattern pattern = Pattern.compile("(<[\\w\\d\\s+-]+>)");
 
     @Inject
-    public TemplateService(DirectoryService dir, TableService tableService, DiceService diceService) {
+    public TemplateService(DirectoryService dir, TableService tables, DiceService dice) {
         this.dir = dir;
-        this.tableService = tableService;
-        this.diceService = diceService;
+        this.tables = tables;
+        this.dice = dice;
+    }
+
+    public String rollTable(String tableName, Map<String,String> vars){
+        return processRaw(tables.roll(tableName),vars);
     }
 
     public String processNamed(String templateName, Map<String,String> vars){
@@ -61,10 +65,10 @@ public class TemplateService {
         String resolved;
         switch (parts[0]) {
             case "table":
-                resolved = tableService.roll(parts[1]);
+                resolved = tables.roll(parts[1]);
                 break;
             case "roll":
-                resolved = format("({0})", diceService.roll(parts[1]));
+                resolved = format("({0})", dice.roll(parts[1]));
                 break;
             case "var":
                 resolved = vars.getOrDefault(parts[1], format("[var {0} NOT FOUND 404_NOT_FOUND]", parts[1]));
@@ -81,5 +85,8 @@ public class TemplateService {
 
     public String processNamed(String templateName) {
         return processNamed(templateName, Collections.EMPTY_MAP);
+    }
+    public String rollTable(String tableName) {
+        return rollTable(tableName, Collections.EMPTY_MAP);
     }
 }
