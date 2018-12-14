@@ -53,12 +53,6 @@ public class ChultApplication {
         log.info("Results {}", tmplt.processNamed("encounter_roll", vars));
         log.info("All Encounter Test {}", tmplt.processRaw(dir.getDoc().getAllEncounterTest(), vars));
 
-        // now lets test the entire file!!!!
-        InputStream chultFile = this.getClass().getResourceAsStream("/chult.yml");
-        String entireFile = IOUtils.toString(chultFile, "UTF-8");
-
-        vars.put("pace", Pace.FAST.name());
-        vars.put("method", Method.CANOE.name());
-        log.info("ENTIRE FILE TEST {}", tmplt.processRaw(entireFile, vars));
+        // there is a full file run over in the Tests
     }
 }
