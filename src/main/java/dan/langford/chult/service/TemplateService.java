@@ -1,12 +1,9 @@
 package dan.langford.chult.service;
 
-import dan.langford.chult.bean.DescriptionDirectory;
-import dan.langford.chult.bean.TemplateDirectory;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.text.MessageFormat;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,21 +13,27 @@ import java.util.regex.Pattern;
 import static java.text.MessageFormat.format;
 import static java.util.Arrays.asList;
 
-@Service
 @Slf4j
+@Singleton
 public class TemplateService {
 
-    @Autowired TemplateDirectory templateDirectory;
-    @Autowired DescriptionDirectory descriptionDirectory;
-    @Autowired TableService tableService;
-    @Autowired DiceService diceService;
+    private final DirectoryService dir;
+    private final TableService tableService;
+    private final DiceService diceService;
 
-    Pattern pattern = Pattern.compile("(<[\\w\\d\\s+-]+>)");
+    private final Pattern pattern = Pattern.compile("(<[\\w\\d\\s+-]+>)");
+
+    @Inject
+    public TemplateService(DirectoryService dir, TableService tableService, DiceService diceService) {
+        this.dir = dir;
+        this.tableService = tableService;
+        this.diceService = diceService;
+    }
 
     public String processNamed(String templateName, Map<String,String> vars){
-        String template = templateDirectory.getTemplates().get(templateName);
+        String template = dir.getTemplate(templateName);
         if(template==null) {
-            throw new NullPointerException(format("cannot find {0} in templateDirectory", templateName));
+            throw new NullPointerException(format("cannot find {0} in templateDirectory 404_NOT_FOUND", templateName));
         }
         return processRaw(template, vars);
     }
@@ -64,13 +67,13 @@ public class TemplateService {
                 resolved = format("({0})", diceService.roll(parts[1]));
                 break;
             case "var":
-                resolved = vars.getOrDefault(parts[1], format("[var {0} NOT FOUND]", parts[1]));
+                resolved = vars.getOrDefault(parts[1], format("[var {0} NOT FOUND 404_NOT_FOUND]", parts[1]));
                 break;
             case "desc":
-                resolved = descriptionDirectory.getDescriptions().getOrDefault(parts[1], format("[desc {0} NOT FOUND]", parts[1]));
+                resolved = dir.getDescription(parts[1], format("[desc {0} NOT FOUND 404_NOT_FOUND]", parts[1]));
                 break;
             default:
-                resolved = format("[{0} {1} CMD NOT FOUND]", parts[0], parts[1]);
+                resolved = format("[{0} {1} CMD NOT FOUND 404_NOT_FOUND]", parts[0], parts[1]);
                 break;
         }
         return resolved;

@@ -3,46 +3,24 @@ package dan.langford.chult.service;
 import com.bernardomg.tabletop.dice.parser.DefaultDiceNotationExpressionParser;
 import com.bernardomg.tabletop.dice.parser.DiceNotationExpressionParser;
 import com.bernardomg.tabletop.dice.roller.DefaultRoller;
-import dan.langford.chult.repo.FileRepo;
+import dan.langford.chult.model.RollResult;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.util.Set;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
-@Service
 @Slf4j
+@Singleton
 public class DiceService {
 
-    @Autowired
-    FileRepo fileRepo;
-
-    DiceNotationExpressionParser diceNotation = new DefaultDiceNotationExpressionParser(new DefaultRoller());
-
-    public Integer roll(String expression) {
-        return diceNotation.parse(expression).getValue();
+    @Inject
+    public DiceService() {
     }
 
-    final int maxAttempts=50;
+    private final DiceNotationExpressionParser diceNotation = new DefaultDiceNotationExpressionParser(new DefaultRoller());
 
-    public Integer rollWithMemory(String expr, String memoryId) {
-
-        Integer roll = roll(expr);
-
-        Set<Integer> priorRolls = fileRepo.loadRollCache(memoryId);
-
-        for(int i=0; i<maxAttempts; i++){
-            if(priorRolls.contains(roll)) {
-                roll = roll(expr);
-            } else {
-                break;
-            }
-        }
-        priorRolls.add(roll);
-        fileRepo.storeRollCache(memoryId, priorRolls);
-
-        return roll;
-
+    public RollResult roll(String expression) {
+        return new RollResult(expression, diceNotation.parse(expression).roll());
     }
 
 }

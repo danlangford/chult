@@ -1,62 +1,40 @@
 package dan.langford.chult.service;
 
-import dan.langford.chult.bean.TableDirectory;
+import dan.langford.chult.model.RollResult;
 import dan.langford.chult.model.Table;
-import dan.langford.chult.repo.FileRepo;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
+import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 import static java.text.MessageFormat.format;
 
-@Service
 @Slf4j
+@Singleton
 public class TableService {
 
-    @Autowired
-    TableDirectory tableDirectory;
+    private final DirectoryService dir;
+    private final DiceService dice;
 
-    @Autowired
-    DiceService dice;
+    @Inject
+    public TableService(DirectoryService dir, DiceService dice) {
+        this.dir = dir;
+        this.dice = dice;
+    }
 
-    @Autowired
-    FileRepo fileRepo;
-
-    private int maxAttempts=50;
 
     public String roll(String tableName) {
 
         String rollResult;
-        Table table = tableDirectory.getTables().get(tableName);
+        Table table = dir.getTable(tableName);
         if (table==null) {
-            rollResult = format("[table {0} not found]", tableName);
+            rollResult = format("[table {0} not found 404_NOT_FOUND]", tableName);
         } else {
             String expr = table.getRoll();
-            int roll = dice.roll(expr);
-            log.info("rolled {}={} for table {}", expr, roll, tableName);
-            String rollGroup = findRollGroup(table, roll);
-
-            Set<String> priorGroups = fileRepo.loadGroupCache(tableName);
-            if (priorGroups.size()>=table.getResults().size()) {
-                priorGroups.clear();
-            }
-
-            for(int i=0; i<maxAttempts; i++){
-                if(priorGroups.contains(rollGroup)) {
-                    rollGroup = findRollGroup(table, roll);
-                } else {
-                    break;
-                }
-            }
-            if(table.getCache()) {
-                priorGroups.add(rollGroup);
-                fileRepo.storeGroupCache(tableName, priorGroups);
-            }
+            RollResult roll = dice.roll(expr);
+            log.debug("rolled {} for table {}", roll, tableName);
+            String rollGroup = findRollGroup(table, roll.getResult());
 
             rollResult = table.getResults().get(rollGroup);
         }
@@ -65,9 +43,9 @@ public class TableService {
     }
 
     private boolean isGroupMatch(int roll, Map.Entry<String,String> e) {
-        String[] parts = e.getKey().split("-");
+        String[] parts = e.getKey().split("\\D"); // \D = not digit
         int min = Integer.parseInt(parts[0]);
-        int max = parts.length==1?min:Integer.parseInt(parts[1]);
+        int max = parts.length == 1 ? min : Integer.parseInt(parts[1]);
         return roll >= min && roll <= max;
     }
 

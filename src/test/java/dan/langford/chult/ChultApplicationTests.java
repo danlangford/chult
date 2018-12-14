@@ -1,43 +1,50 @@
 package dan.langford.chult;
 
+import dan.langford.chult.model.Method;
+import dan.langford.chult.model.Pace;
+import dan.langford.chult.model.Terrain;
+import dan.langford.chult.service.DiceService;
+import dan.langford.chult.service.DirectoryService;
+import dan.langford.chult.service.TableService;
 import dan.langford.chult.service.TemplateService;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.springframework.util.ResourceUtils;
-import org.springframework.util.StreamUtils;
+import org.apache.commons.io.IOUtils;
+import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(properties = {"app.campaign=UNITTESTS"})
-@Slf4j
-public class ChultApplicationTests {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    @Autowired
-    TemplateService templateService;
+
+@Slf4j
+class ChultApplicationTests {
+
+    private final DirectoryService dir = new DirectoryService();
+    private final DiceService dice = new DiceService();
+    private final TableService tables = new TableService(dir, dice);
+    private final TemplateService tmplt = new TemplateService(dir, tables, dice);
 
 	@Test
-	public void testEntireTemplateStructure() throws IOException {
+    void testEntireTemplateStructure() throws IOException {
 
-        Resource file = new ClassPathResource("application-default.yml");
-	    String fileContents = StreamUtils.copyToString(file.getInputStream(), Charset.forName("UTF-8"));
+		// now lets test the entire file!!!!
+		InputStream chultFile = this.getClass().getResourceAsStream("/chult.yml");
+		String fileContents = IOUtils.toString(chultFile, "UTF-8");
 
-	    Map<String,String> vars = new HashMap<>();
-	    vars.put("terrain","rivers");
+		Map<String,String> vars = new HashMap<>();
+		vars.put("terrain", Terrain.RUINS.name());
+		vars.put("pace", Pace.FAST.name());
+		vars.put("method", Method.CANOE.name());
 
-//	    log.info("\n\n**********\n\n{}\n\n**********\n\n", templateService.processRaw(fileContents, vars));
-	    log.info("\n\n**********\n\n{}\n\n**********\n\n", templateService.processRaw("Welcome to the <var terrain>! Encounter roll … <table encounter_<var terrain>>", vars));
+		String entireFileResults = tmplt.processRaw(fileContents, vars);
 
+		assertThat(entireFileResults).doesNotContain("404");
 
+	    log.info("\n\n**********\n\n{}\n\n**********\n\n", entireFileResults);
+	    log.info("\n\n**********\n\n{}\n\n**********\n\n", tmplt.processRaw("Welcome to the <var terrain>! Encounter roll … <table encounter_<var terrain>>", vars));
 
 	}
 

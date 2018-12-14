@@ -1,13 +1,64 @@
 package dan.langford.chult;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import dagger.Component;
+import dan.langford.chult.model.Method;
+import dan.langford.chult.model.Pace;
+import dan.langford.chult.model.Terrain;
+import dan.langford.chult.service.DiceService;
+import dan.langford.chult.service.DirectoryService;
+import dan.langford.chult.service.TemplateService;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 
-@SpringBootApplication
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+// TODO: rename all references to chult to something more generic
+
+@Component
+@Singleton
+interface ChultComponent {
+    ChultApplication getChult();
+}
+
+@Slf4j
+@Singleton
 public class ChultApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(ChultApplication.class, args);
-	}
+    public static void main(String ... args) throws IOException {
+        ChultComponent component = DaggerChultComponent.create();
+        component.getChult().run();
+    }
 
+    private final DiceService dice;
+    private final TemplateService tmplt;
+    private final DirectoryService dir;
+
+    @Inject
+    public ChultApplication(DiceService dice, TemplateService tmplt, DirectoryService dir) {
+        this.dice = dice;
+        this.tmplt = tmplt;
+        this.dir = dir;
+    }
+
+    private void run() throws IOException {
+        log.debug("Test Roll {}", dice.roll("1d20"));
+        Map<String, String> vars = new HashMap<>();
+        vars.put("terrain", Terrain.JUNGLE_NO_UNDEAD.name());
+        log.debug("vars={}", vars);
+        log.info("Results {}", tmplt.processNamed("encounter_roll", vars));
+        log.info("All Encounter Test {}", tmplt.processRaw(dir.getDoc().getAllEncounterTest(), vars));
+
+        // now lets test the entire file!!!!
+        InputStream chultFile = this.getClass().getResourceAsStream("/chult.yml");
+        String entireFile = IOUtils.toString(chultFile, "UTF-8");
+
+        vars.put("pace", Pace.FAST.name());
+        vars.put("method", Method.CANOE.name());
+        log.info("ENTIRE FILE TEST {}", tmplt.processRaw(entireFile, vars));
+    }
 }
