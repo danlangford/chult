@@ -65,6 +65,17 @@ public class FileRepo {
         this.store(this.props);
     }
 
+    public Set<String> loadGroupCache(String memoryId) {
+        this.props = this.load();
+        return Arrays.stream(this.props.getProperty("groupcache."+memoryId,"x").split(" "))
+                .collect(toSet());
+    }
+
+    public void storeGroupCache(String memoryId, Set<String> rollCache) {
+        this.props.setProperty("groupcache."+memoryId, rollCache.stream().sorted().filter(x->!"x".equals(x)).collect(joining(" ")));
+        this.store(this.props);
+    }
+
     public Integer getDay() {
         return Integer.valueOf(this.get().getProperty("time.day","0"));
     }

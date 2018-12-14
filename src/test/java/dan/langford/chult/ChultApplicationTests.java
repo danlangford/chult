@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
+@SpringBootTest(properties = {"app.campaign=UNITTESTS"})
 @Slf4j
 public class ChultApplicationTests {
 
@@ -32,9 +32,10 @@ public class ChultApplicationTests {
 	    String fileContents = StreamUtils.copyToString(file.getInputStream(), Charset.forName("UTF-8"));
 
 	    Map<String,String> vars = new HashMap<>();
-	    vars.put("terrain","beach");
+	    vars.put("terrain","rivers");
 
-	    log.info("\n\n**********\n\n{}\n\n**********\n\n", templateService.processRaw(fileContents, vars));
+//	    log.info("\n\n**********\n\n{}\n\n**********\n\n", templateService.processRaw(fileContents, vars));
+	    log.info("\n\n**********\n\n{}\n\n**********\n\n", templateService.processRaw("Welcome to the <var terrain>! Encounter roll … <table encounter_<var terrain>>", vars));
 
 
 

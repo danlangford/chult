@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.MessageFormat;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -75,4 +76,7 @@ public class TemplateService {
         return resolved;
     }
 
+    public String processNamed(String templateName) {
+        return processNamed(templateName, Collections.EMPTY_MAP);
+    }
 }

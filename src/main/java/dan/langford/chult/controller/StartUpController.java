@@ -54,44 +54,7 @@ At the end of the day, check to see if any party members are dehydrated (see “
     @Override
     public void run(ApplicationArguments args) throws Exception {
 
-        List<Entry<Events,States>> possibleEvents;
-
-        stateMachine.sendEvent(withPayload(TRAVEL).setHeader("target","A1").build());
-
-        possibleEvents = getPossibleEvents(stateMachine);
-        log.info("possible event/state combos are {}", possibleEvents);
-
-        stateMachine.sendEvent(withPayload(TRAVEL).setHeader("target","A2").build());
-
-        possibleEvents = getPossibleEvents(stateMachine);
-        log.info("possible events are {}", possibleEvents);
-
-        stateMachine.sendEvent(withPayload(REST).build());
-
-        possibleEvents = getPossibleEvents(stateMachine);
-        log.info("possible events are {}", possibleEvents);
-
-        stateMachine.sendEvent(withPayload(TRAVEL).setHeader("target","B3").build());
-
-        possibleEvents = getPossibleEvents(stateMachine);
-        log.info("possible events are {}", possibleEvents);
-
-        stateMachine.sendEvent(withPayload(SLEEP).build());
-
-        possibleEvents = getPossibleEvents(stateMachine);
-        log.info("possible events are {}", possibleEvents);
-
-        stateMachine.sendEvent(withPayload(TRAVEL).build());
-
-        possibleEvents = getPossibleEvents(stateMachine);
-        log.info("possible events are {}", possibleEvents);
-
-        stateMachine.sendEvent(withPayload(TRAVEL).setHeader("target","A3").build());
-
-        possibleEvents = getPossibleEvents(stateMachine);
-        log.info("possible events are {}", possibleEvents);
-
-        timeService.newDay();
+        stateMachine.sendEvent(withPayload(CONTEMPLATE).build());
 
         List<String> commands = args.getNonOptionArgs();
         if (commands.isEmpty()) {
@@ -109,13 +72,5 @@ At the end of the day, check to see if any party members are dehydrated (see “
 
     }
 
-    private List<Entry<Events,States>> getPossibleEvents(StateMachine<States, Events> stateMachine) {
-        return stateMachine.getTransitions().stream()
-//                .peek(t -> log.info("1 transition {}", t))
-                .filter(t-> stateMachine.getState().equals(t.getSource()))
-                .filter(t -> t.getGuard()==null || t.getGuard().evaluate(context))
-//                .peek(t -> log.info("2 transition {}", t))
-                .map(t -> new SimpleEntry<>(t.getTrigger().getEvent(), t.getTarget().getId()))
-                .collect(Collectors.toList());
-    }
+
 }
